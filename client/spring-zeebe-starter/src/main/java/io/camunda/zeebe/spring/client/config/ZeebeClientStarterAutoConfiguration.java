@@ -26,13 +26,13 @@ public class ZeebeClientStarterAutoConfiguration {
   }
 
   @Bean
-  @Primary
   public ZeebeClientBuilder builder(
     @Autowired(required = false) JsonMapper jsonMapper,
     @Autowired(required = false) List<ClientInterceptor> clientInterceptorList
   ) {
     final ZeebeClientBuilderImpl builder = new ZeebeClientBuilderImpl();
 
+    builder.applyEnvironmentVariableOverrides(configurationProperties.isApplyEnvironmentVariableOverrides());
     builder.gatewayAddress(configurationProperties.getGatewayAddress());
     builder.defaultJobPollInterval(configurationProperties.getDefaultJobPollInterval());
     builder.defaultJobTimeout(configurationProperties.getDefaultJobTimeout());

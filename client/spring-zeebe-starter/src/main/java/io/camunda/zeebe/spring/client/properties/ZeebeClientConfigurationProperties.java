@@ -1,5 +1,6 @@
 package io.camunda.zeebe.spring.client.properties;
 
+import io.camunda.zeebe.client.ZeebeClientConfiguration;
 import io.camunda.zeebe.client.impl.ZeebeClientBuilderImpl;
 import io.grpc.ClientInterceptor;
 import io.camunda.zeebe.client.CredentialsProvider;
@@ -15,7 +16,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(prefix = "zeebe.client")
-public class ZeebeClientConfigurationProperties implements ZeebeClientProperties {
+public class ZeebeClientConfigurationProperties implements ZeebeClientConfiguration {
 
   // Used to read default config values
   public static final ZeebeClientBuilderImpl DEFAULT = (ZeebeClientBuilderImpl) new ZeebeClientBuilderImpl().withProperties(new Properties());
@@ -38,6 +39,9 @@ public class ZeebeClientConfigurationProperties implements ZeebeClientProperties
   @NestedConfigurationProperty
   private Job job = new Job();
 
+  private Duration requestTimeout = DEFAULT.getDefaultRequestTimeout();
+  private boolean applyEnvironmentVariableOverrides = false; // the default is NOT to overwrite anything by environment variables in a Spring Boot world - it is unintuitive
+
   /**
    * TODO: Think about how to support this in Spring Boot and potentially even remove it from the ZeebeClientProperties
    * interface upstream
@@ -49,8 +53,6 @@ public class ZeebeClientConfigurationProperties implements ZeebeClientProperties
    * interface upstream
    */
   private ArrayList<ClientInterceptor> interceptors = new ArrayList<>();
-
-  private Duration requestTimeout = DEFAULT.getDefaultRequestTimeout();
 
   public Broker getBroker() {
     return broker;
@@ -112,6 +114,14 @@ public class ZeebeClientConfigurationProperties implements ZeebeClientProperties
     this.requestTimeout = requestTimeout;
   }
 
+
+  public boolean isApplyEnvironmentVariableOverrides() {
+    return applyEnvironmentVariableOverrides;
+  }
+
+  public void setApplyEnvironmentVariableOverrides(boolean applyEnvironmentVariableOverrides) {
+    this.applyEnvironmentVariableOverrides = applyEnvironmentVariableOverrides;
+  }
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -150,26 +160,6 @@ public class ZeebeClientConfigurationProperties implements ZeebeClientProperties
 
     private String gatewayAddress;
     private Duration keepAlive = DEFAULT.getKeepAlive();
-
-    /**
-     * Use gatewayAddress. It's deprecated since 0.25.0, and will be removed in 0.26.0
-     *
-     * @return gatewayAddress
-     */
-    @Deprecated
-    public String getContactPoint() {
-      return getGatewayAddress();
-    }
-
-    /**
-     * Use gatewayAddress. It's deprecated since 0.25.0, and will be removed in 0.26.0
-     *
-     * @param contactPoint
-     */
-    @Deprecated
-    public void setContactPoint(String contactPoint) {
-      setGatewayAddress(contactPoint);
-    }
 
     public String getGatewayAddress() {
       if (gatewayAddress != null) {
@@ -305,7 +295,7 @@ public class ZeebeClientConfigurationProperties implements ZeebeClientProperties
   public static class Worker {
     private Integer maxJobsActive = DEFAULT.getDefaultJobWorkerMaxJobsActive();
     private Integer threads = DEFAULT.getNumJobWorkerExecutionThreads();
-    private String defaultName = DEFAULT.getDefaultJobWorkerName();
+    private String defaultName = null; // setting NO default in Spring, as bean/method name is used as default
     private String defaultType = null;
 
     public Integer getMaxJobsActive() {
