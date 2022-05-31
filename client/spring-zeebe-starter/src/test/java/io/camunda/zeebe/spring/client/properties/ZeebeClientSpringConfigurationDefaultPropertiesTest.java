@@ -60,7 +60,7 @@ public class ZeebeClientSpringConfigurationDefaultPropertiesTest {
     assertThat(properties.getNumJobWorkerExecutionThreads()).isEqualTo(1);
   }
 
-  @Test 
+  @Test
   public void hasMessageTimeToLeave() throws Exception {
     assertThat(properties.getDefaultMessageTimeToLive()).isEqualTo(Duration.ofSeconds(3600));
   }
